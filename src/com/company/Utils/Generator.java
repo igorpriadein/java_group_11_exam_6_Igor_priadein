@@ -1,4 +1,4 @@
-package kz.attractor.java.domain;
+package com.company.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;

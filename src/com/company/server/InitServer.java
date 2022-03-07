@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
+import com.company.entity.CalendarModel;
+import com.company.entity.DayModel;
 import com.sun.net.httpserver.HttpExchange;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -16,7 +18,8 @@ public class InitServer extends BasicServer {
 
     public InitServer(String host, int port) throws IOException {
         super(host, port);
-        registerGet("/sample", this::freemarkerHandler);
+        registerGet("/", this::indexHandler);
+        registerGet("/day", this::tasksHandler);
     }
 
     private static Configuration initFreeMarker() {
@@ -40,9 +43,16 @@ public class InitServer extends BasicServer {
         }
     }
 
-    private void freemarkerHandler(HttpExchange exchange) {
-        renderTemplate(exchange, "sample.html", getDataModel());
+    private void indexHandler(HttpExchange exchange) {
+        renderTemplate(exchange, "index.html", getDataModel());
     }
+
+    private void tasksHandler(HttpExchange exchange) {
+
+        DayModel day = new DayModel();
+        renderTemplate(exchange, "day.ftl", day);
+    }
+
 
     protected void renderTemplate(HttpExchange exchange, String templateFile, Object dataModel) {
         try {
@@ -76,9 +86,9 @@ public class InitServer extends BasicServer {
 
     }
 
-    private DataModel getSampleDataModel() {
+    private CalendarModel getDataModel() {
         // возвращаем экземпляр тестовой модели-данных
         // которую freemarker будет использовать для наполнения шаблона
-        return new DataModel();
+        return new CalendarModel();
     }
 }
