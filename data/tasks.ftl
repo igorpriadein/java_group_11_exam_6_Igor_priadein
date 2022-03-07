@@ -11,8 +11,8 @@
 <div class="container">
 
     <ul>
-        <#list tasks as task>
-            <li><a href="http://localhost:8988/day?id=${task.id}">${task.id} - ${task.name} - ${task.description}</a></li>
+        <#list tasksList as task>
+            <li><a href="http://localhost:8988/day?date=${task.date}">${task.date} - ${task.name} - ${task.description}</a></li>
         </#list>
     </ul>
 </div>

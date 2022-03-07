@@ -5,8 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import com.company.entity.CalendarModel;
-import com.company.entity.DayModel;
+import com.company.Services.TaskService;
+import com.company.dtm.CalendarDataModel;
+import com.company.dtm.TasksModel;
 import com.sun.net.httpserver.HttpExchange;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -15,23 +16,18 @@ import freemarker.template.TemplateExceptionHandler;
 
 public class InitServer extends BasicServer {
     private final static Configuration freemarker = initFreeMarker();
+    private final TaskService taskService = new TaskService();
 
     public InitServer(String host, int port) throws IOException {
         super(host, port);
         registerGet("/", this::indexHandler);
-        registerGet("/day", this::tasksHandler);
+        registerGet("/tasks", this::tasksHandler);
     }
 
     private static Configuration initFreeMarker() {
         try {
             Configuration cfg = new Configuration(Configuration.VERSION_2_3_29);
-            // путь к каталогу в котором у нас хранятся шаблоны
-            // это может быть совершенно другой путь, чем тот, откуда сервер берёт файлы
-            // которые отправляет пользователю
             cfg.setDirectoryForTemplateLoading(new File("data"));
-
-            // прочие стандартные настройки о них читать тут
-            // https://freemarker.apache.org/docs/pgui_quickstart_createconfiguration.html
             cfg.setDefaultEncoding("UTF-8");
             cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
             cfg.setLogTemplateExceptions(false);
@@ -44,40 +40,24 @@ public class InitServer extends BasicServer {
     }
 
     private void indexHandler(HttpExchange exchange) {
+        //var dataModel = new CalendarDataModel();
         renderTemplate(exchange, "index.html", getDataModel());
     }
 
     private void tasksHandler(HttpExchange exchange) {
-
-        DayModel day = new DayModel();
-        renderTemplate(exchange, "day.ftl", day);
+        var dataModel  =  taskService.getTasks();
+        renderTemplate(exchange, "tasks.ftl", dataModel);
     }
 
 
     protected void renderTemplate(HttpExchange exchange, String templateFile, Object dataModel) {
         try {
-            // загружаем шаблон из файла по имени.
-            // шаблон должен находится по пути, указанном в конфигурации
             Template temp = freemarker.getTemplate(templateFile);
-
-            // freemarker записывает преобразованный шаблон в объект класса writer
-            // а наш сервер отправляет клиенту массивы байт
-            // по этому нам надо сделать "мост" между этими двумя системами
-
-            // создаём поток который сохраняет всё, что в него будет записано в байтовый массив
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            // создаём объект, который умеет писать в поток и который подходит для freemarker
             try (OutputStreamWriter writer = new OutputStreamWriter(stream)) {
-
-                // обрабатываем шаблон заполняя его данными из модели
-                // и записываем результат в объект "записи"
                 temp.process(dataModel, writer);
                 writer.flush();
-
-                // получаем байтовый поток
                 var data = stream.toByteArray();
-
-                // отправляем результат клиенту
                 sendByteData(exchange, ResponseCodes.OK, ContentType.TEXT_HTML, data);
             }
         } catch (IOException | TemplateException e) {
@@ -86,9 +66,8 @@ public class InitServer extends BasicServer {
 
     }
 
-    private CalendarModel getDataModel() {
-        // возвращаем экземпляр тестовой модели-данных
-        // которую freemarker будет использовать для наполнения шаблона
-        return new CalendarModel();
+
+    private CalendarDataModel getDataModel() {
+        return new CalendarDataModel();
     }
 }

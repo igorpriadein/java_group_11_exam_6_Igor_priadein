@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="container">
+    <#list daysList as day>
+    <li><a href="http://localhost:8988/?date=${day.date}">${day.date}</a></li>
+</#list>
+</div>
+</body>
+</html>
